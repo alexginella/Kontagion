@@ -1,0 +1,266 @@
+
+1) description of public member functions
+
+
+Actor:
+
+
+
+
+void doSomething() = 0;
+- this function is the base of all the actor's abilities to preform actions in the game. Without it nothing would happen.
+- It is pure virtual because the actions preformed differ from object to object and a purely "Actor" object will never exist in the game so there cant be any description for what such an object must do during one tick of the game
+
+bool isAlive();
+- accessor function for the alive data member that all objects share. This function is in Actor because everything in the game has an alive status
+
+void setAliveStatus();
+- setter for the alive member variable
+
+int getHp();
+- I decided to give an hp member to every actor in the game to reduce the amount of total classes in the heiarchy. This way every actor can take damage in a similar way and if an actor doest have hit points (goodies, food etc..) I just initialized their hp as zero
+
+StudentWorld* getWorld()
+- getter for the m_world data member. Every object has to have a pointer to the world it is in so it can access all the neat member functions of the studentworld class and affect the game
+
+bool isPlayer();
+- returns the isplayer member which determines if an actor is or is not the player. This is useful for when you're traversing a vector of Actor pointers and need to preform distinct actions depending on the type of Actor it is
+
+bool isDamageable()
+- returns the damageable member, not every item in the game is damageable so this is used to distinguish them when attempting to deal damage. Admittedly this might not be necessary since every item has either some or zero hitpoints and could therefore take damage
+
+void heal()
+- sets Actor's health to 100, this is only called on Socrates because he is the only Actor able to heal, but because hp is common across all actors this function needs to go along with it in the actor class
+
+virtual bool takeDamage(int amount)
+- this function decrements Actor's hp by the param value, then checks if health is <= 0 and sets alive status accordingly. If the actor is socrates than it plays the appropriate hurt sound. This function is virtual because some actors need to play different sounds and preform different actions on death (bacteria). Though it is in the Actor class because since I gave everything hp, everything needs to be able to lose hp and die
+
+bool blocksStuff()
+- returns the blocksstuff member, used to determine if the actor blocks movement. Every Item either does or doesnt block stuff so I put it in the Actor class
+
+bool isFood()
+- when traversing the Actor* vector it is useful to know whether or not the actor we're looking at is food, specifically so we can group them together and attempt to find the closest one. this is applicable to all actors
+
+bool isEnemy()
+- also something that can be determined for all actors in the game. This is useful to have because when treversing every actor it is useful to be able to count and keep track of how many of the actors are enemy bacteria.
+
+
+
+Socrates:
+
+getSprays():
+- this is a unique member of the socrates class, used to keep track of his spray ammo. Obvisouly belongs in the Socrates class
+
+getFlames():
+- same as getSprays but for his flame ammo
+
+void increaseFlames(int amount)
+- increases Soc's flame count by param value. Goes along with his flames member variable in the same class
+
+void doSomething()
+Socrate's unique doSomething function
+
+
+
+
+
+
+Dirt:
+
+doSomething():
+- this functin does nothing but must be here or else dirt would be abstract
+
+
+
+
+Food:
+
+doSomething():
+- this function also does nothing
+
+
+
+
+
+Pit:
+
+void doSomething();
+- function does as is described in the spec, checks if its alive, checks if it's released all bacteria and notifies student world, spawns bacteria and adds to gameActors vector in studentWorld, plays approrpiate sound
+
+
+
+Projectile:
+
+int travelDist();
+- returns traveldist member
+
+
+void decrementDist();
+- decrements travel dist member
+
+void move()
+- checks if it still has travel dist and then moves forward by one sprite width, decrements distance. Otherwise it just kills itself
+
+bool attemptDamage(int amount);
+- asks studentworld if projectile overlaps with anything then attempt param amount of damage to the actor that is overlaps with if any
+
+
+
+
+Spray:
+
+doSomehting()
+
+Flame:
+
+doSomething()
+
+
+
+
+Item:
+Actor* checkCollisions(int increaseScore, bool fungus)
+checks for collisions then checks if what it collided with was the player. if so then increases the score by param amound and either playes goodie sound or fungus sound depending on fungus param
+
+
+
+RestoreHealth:
+
+doSomething()
+-checksCollisions and then heals player, then decrements lifetime
+
+FlamethrowerItem:
+
+doSomething()
+- same as Restore health except it increases flame count by 5
+
+
+Extralife:
+
+doSomething()
+- same as above but it increases lives by calling increaseLives() in gameworld
+
+
+Fungus:
+
+doSomething()
+- same as previous two except it damages the player by 20 points
+
+
+Bacteria
+
+eatFood():
+determines if it overlaps with food, then increments how much food was eaten by one then sets food alive status to false
+
+aimTowards(Actor* obj)
+- if the param is null it calculates the angle to move in to get to the player using the player's coords given from gameworld, otherwise it does the same thing except for the param object. Sets direction to calculated angle. This belongs in this class because all bacteria need to know how to track something
+
+inBounds(int x, int y)
+- calculates whether given coords are within the dish
+
+bool blockedByDirt(int x, int y)
+- given param coords calculates if moving forward would result in collision with a dirt object or not
+
+canMoveForward():
+gets the position in the forward direction and checks if those coords are blocked by dirt or not, then checks if theyre in bounds and returns the appropriate boolean
+
+void divide(bool isRegular, bool isEcoli)
+- checks if its eaten 3 food, then calculates new coords and creates new bacteria based on the param booleans. Resets food
+
+
+
+
+Salmonella:
+
+
+
+- attemptMoveForward()
+tries to move forward using the above functions in Bacteria class, otherwise moves in random direction
+
+
+moveRandom():
+generates random angle and moves 10 pixels forward, resets movement plan
+
+takeDamage()
+- takes damage, checks if still alive, playes appropriate sound, determines whether or not to spawn a food actor upon death
+
+
+these functions are common among the different types of salmonella so I put them in the salmonella base class
+
+
+Regular Salmonella
+
+doSomething();
+
+
+Agressive Salmonella:
+
+doSomething()
+
+
+Ecoli:
+
+move()
+- moves the ecoli towards the player if in range by using the aimTowards function and checking if it is blocked by dirt or not
+
+takeDamage(int amt)
+- its own damage funciton similar to the salmonella ones but plays a different sound
+
+doSomething()
+
+
+
+
+Studentworld---------------
+
+determineOverlap(int x, int y, Actor*& target):
+- determines if x and y overlap with anything in vector, sets target param to whatever it overlapped with
+
+determineBlockingOverlap
+
+-same as above function but uses SPRITE_WIDTH/2
+
+generateRandCoords(int&x, int& y, Actor* temp):
+generates random coord in bounds and sets x and y to them
+
+
+removeDeadObjects():
+traverses through game vector and deletes then removes from vector dead objects
+
+spawnFungus(){
+spawns a fungus
+}
+
+spawnGoodie():
+determines which goodie to spawn and then spawns it, adding to vector
+
+addNewActors()
+spawns in goodies and fungi
+
+updateGameText():
+writes the game stats on the screen using stringstream
+
+closestFood():
+given a vector of food objects determines whihch one is closest to a salmonella
+
+foodNearMe:
+finds food items that are near a param actor "me", sends them to closestfood to find which ones the closest
+
+levelComplete;
+checks if all enemies have been killed returns boolean
+
+
+
+2) failed functionality:
+
+I got pretty much most of everything done i think
+
+
+3) bugs: for some reason when a salmonella dies and spawns a food, other salmonella cant eat it right off the bat, but sometimes seemingly randomly, nearby salmonella are all of a sudden able to eat it.
+
+    After a certain point the audio stops working
+    
+    It takes a lil while for the salmonella to start tracking food and they dont seem to behave exactly the same as in the example game
+    
+4)
+I tested my classes by playing the game and changing the parameter values to see if they would yield the appropriate effect on the gameplay
